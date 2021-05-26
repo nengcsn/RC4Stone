@@ -9,7 +9,7 @@ public class Stone
     Vector3 _centerOfGravity;
     Vector3 _stoneNormal;
     //List<Voxel> _voxels;
-    float _longestLength;
+    public float Length { get; private set; }
     List<NormalGroup> _stoneNormals;
     List<MeshTriangle> _triangleMesh;
     float _weight;
@@ -61,13 +61,14 @@ public class Stone
                         voxel.transform.localPosition = localPosition;
                         voxel.transform.localScale = Vector3.one * _voxelSize;
                         GameObject.Destroy(voxel.GetComponent<Collider>());
+                        voxel.transform.GetComponent<MeshRenderer>().enabled = false;
 
                         _voxels[x, y, z] = voxel;
                     }
                 }
             }
         }
-        _goStone.GetComponent<MeshRenderer>().enabled = false;
+        //_goStone.GetComponent<MeshRenderer>().enabled = false;
 
 
 
@@ -100,7 +101,7 @@ public class Stone
                 Vector3 line = voxelList[i].transform.position - voxelList[j].transform.position;
                 if (line.magnitude > _stoneNormal.magnitude)
                 {
-                    _longestLength = line.magnitude;
+                    Length = line.magnitude;
                     _stoneNormal = line;
                     NormalStart = voxelList[i];
                     NormalEnd = voxelList[j];
@@ -118,7 +119,7 @@ public class Stone
     {
         Quaternion rotation = Util.RotateFromTo(_stoneNormal, normalTarget);
         _goStone.transform.localRotation = rotation;
-        _stoneNormal = normalTarget * _longestLength;
+        _stoneNormal = normalTarget * Length;
         GetStoneNormal();
     }
 
@@ -126,6 +127,9 @@ public class Stone
     {
         //Move start point to target
         _goStone.transform.position = target;
+        
+        
+
     }
 
     public class FromToVector : MonoBehaviour
