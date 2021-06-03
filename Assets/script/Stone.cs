@@ -105,10 +105,16 @@ public class Stone
                     _stoneNormal = line;
                     NormalStart = voxelList[i];
                     NormalEnd = voxelList[j];
+                    if (Vector3.Distance(NormalStart.transform.localPosition, Vector3.zero) 
+                        > Vector3.Distance(NormalEnd.transform.localPosition, Vector3.zero))
+                    {
+                        NormalStart = voxelList[j];
+                        NormalEnd = voxelList[i];
+                    }
                 }
             }
         }
-
+        //Debug.Log($"Length: {Length}");
     }
     public void PlaceStoneByLongestDirection()
     {

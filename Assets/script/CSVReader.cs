@@ -22,7 +22,7 @@ public static class CSVReader
 
 
         var lineStart = GameObject.Find("pointstart");
-        lineStart.transform.position= new Vector3(startX, startY, startZ);
+        lineStart.transform.position = new Vector3(startX, startY, startZ);
         return lineStart.transform.position;
 
 
@@ -48,5 +48,34 @@ public static class CSVReader
         lineEnd.transform.position = new Vector3(endX, endY, endZ);
         return lineEnd.transform.position;
 
+    }
+
+    public static List<Line> ReadLines(string startPoints, string endPoints)
+    {
+        List<Line> result = new List<Line>();
+        
+        string startContent = Resources.Load<TextAsset>($"Data/{startPoints}").text;
+        string endContent = Resources.Load<TextAsset>($"Data/{endPoints}").text;
+
+        string[] startCoords = startContent.Split('\n');
+        string[] allStartPointsX = startCoords.Select(l => l.Split(',')[0]).ToArray();
+        string[] allStartPointsY = startCoords.Select(l => l.Split(',')[2]).ToArray();
+        string[] allStartPointsZ = startCoords.Select(l => l.Split(',')[1]).ToArray();
+
+        string[] endCoords = endContent.Split('\n');
+        string[] allEndPointsX = endCoords.Select(l => l.Split(',')[0]).ToArray();
+        string[] allEndPointsY = endCoords.Select(l => l.Split(',')[2]).ToArray();
+        string[] allEndPointsZ = endCoords.Select(l => l.Split(',')[1]).ToArray();
+
+        for (int i = 0; i < startCoords.Length; i++)
+        {
+            Vector3 startPoint = new Vector3(float.Parse(allStartPointsX[i]), float.Parse(allStartPointsY[i]), float.Parse(allStartPointsZ[i]));
+            Vector3 endPoint = new Vector3(float.Parse(allEndPointsX[i]), float.Parse(allEndPointsY[i]), float.Parse(allEndPointsZ[i]));
+
+            Line line = new Line(startPoint, endPoint);
+            result.Add(line);
+        }
+
+        return result;
     }
 }

@@ -2,28 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Line : MonoBehaviour
+public class Line
 {
-	// Start is called before the first frame update
-	//void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.2f)
-	//{
-	//	GameObject myLine = new GameObject();
-	//	myLine.transform.position = start;
-	//	myLine.AddComponent<LineRenderer>();
-	//	LineRenderer lr = myLine.GetComponent<LineRenderer>();
-	//	lr.material = new Material(Shader.Find("Particles/Alpha Blended Premultiply"));
-	//	lr.SetColors(color, color);
-	//	lr.SetWidth(0.1f, 0.1f);
-	//	lr.SetPosition(0, start);
-	//	lr.SetPosition(1, end);
-	//	GameObject.Destroy(myLine, duration);
-	//}
+	public Vector3 Start;
+	public Vector3 End;
+	LineRenderer _renderer;
 
-	// Update is called once per frame
-	void Update()
+	public float Length => Vector3.Distance(Start, End);
+	public Vector3 Direction => End - Start;
+	public Vector3 Normal => Direction.normalized;
+
+	public Line(Vector3 start, Vector3 end)
     {
-		Debug.DrawLine(Vector3.zero, new Vector3(5, 0, 0), Color.white);
-		Debug.DrawLine(Vector3.zero, new Vector3(5, 5, 0), Color.white);
-        //Debug.DrawLine(new Vector3(1, 0, 0), new Vector3(1, 1, 0, Color.white);
+		Start = start;
+		End = end;
+
+		var rendererPrefab = Resources.Load<GameObject>("Prefabs/LRender");
+		var rendererGO = GameObject.Instantiate(rendererPrefab);
+		rendererGO.transform.parent = GameObject.Find("LineRenderers").transform;
+		_renderer = rendererGO.GetComponent<LineRenderer>();
+
+		_renderer.positionCount = 2;
+		_renderer.SetPosition(0, Start);
+		_renderer.SetPosition(1, End);
+		_renderer.startWidth = 0.1f;
+		_renderer.endWidth = 0.1f;
     }
+
+	
 }

@@ -7,7 +7,8 @@ public class StoneLineManager : MonoBehaviour
 {
     //Voxelise the mesh
     Stone[] _stones;
-    List<GameObject> _lines;
+    //List<GameObject> _lines;
+    List<Line> _lines;
     List<Vector3> _targetNormals;
     //public GameObject LineStart;
     //public GameObject LineEnd;
@@ -25,31 +26,10 @@ public class StoneLineManager : MonoBehaviour
         _stones = GameObject.FindGameObjectsWithTag("Stone").Select(s => new Stone(s)).ToArray();
         foreach (var stone in _stones) stone.VoxeliseMesh();
 
-        _lines = GameObject.FindGameObjectsWithTag("Line").ToList();
-        _targetNormals = new List<Vector3>();
-        foreach (var line in _lines)
-        {
-            var startPoint = line.transform.Find("Start");
-            var endPoint = line.transform.Find("End");
-            var renderer = line.transform.Find("Renderer").GetComponent<LineRenderer>();
-            renderer.positionCount = 2;
-            renderer.SetPosition(0, startPoint.position);
-            renderer.SetPosition(1, endPoint.position);
-            Vector3 newNormal = endPoint.position - startPoint.position;
-            _targetNormals.Add(newNormal);
-        }
+        _lines = CSVReader.ReadLines("start_points", "end_points");
 
+        GetNormals();
 
-
-
-        //_targetNormal = LineEnd.transform.position - LineStart.transform.position;
-        //_targetNormal2 = LineEnd1.transform.position - LineStart1.transform.position;
-        //LineRenderer.positionCount = 2;
-        //LineRenderer.SetPosition(0, LineStart.transform.position);
-        //LineRenderer.SetPosition(1, LineEnd.transform.position);
-        //LineRenderer1.positionCount = 2;
-        //LineRenderer1.SetPosition(0, LineStart1.transform.position);
-        //LineRenderer1.SetPosition(1, LineEnd1.transform.position);
     }
 
     private void Update()
@@ -80,23 +60,41 @@ public class StoneLineManager : MonoBehaviour
         }
     }
 
+    private void GetNormals()
+    {
+        _targetNormals = new List<Vector3>();
+        foreach (var line in _lines)
+        {
+            var startPoint = line.Start;
+            var endPoint = line.End;
+            Vector3 newNormal = endPoint - startPoint;
+            _targetNormals.Add(newNormal);
+        }
+    }
+
     IEnumerator PlaceStones()
     {
         Queue<Stone> availableStones = new Queue<Stone>(_stones);
         for (int i = 0; i < _lines.Count; i++)
         {
             var line = _lines[i];
-            var length = _targetNormals[i].magnitude;
+            var length = line.Length;
             float stonesLength = 0;
-            Vector3 startPosition = line.transform.Find("Start").transform.position;
+            Vector3 startPosition = line.Start;
             while (stonesLength < length && availableStones.Count > 0)
             {
                 var nextStone = availableStones.Dequeue();
                 stonesLength += nextStone.Length;
-                nextStone.OrientNormal(_targetNormals[i]);
+                nextStone.OrientNormal(line.Normal);
                 nextStone.MoveStartToPosition(startPosition);
-                startPosition = nextStone.NormalStart.transform.position;
-                yield return new WaitForSeconds(0.5f);
+                //startPosition = nextStone.NormalStart.transform.position;
+
+
+                // Account for intersection distance for overlaping the stones
+                // Subtract from the next a given distance
+                startPosition = startPosition + (line.Normal * (nextStone.Length /*- intersection length*/));
+                //yield return new WaitForSeconds(0.5f);
+                yield return new WaitForEndOfFrame();
             }
 
         }
