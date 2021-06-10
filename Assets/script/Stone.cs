@@ -5,7 +5,8 @@ using System.Linq;
 
 public class Stone
 {
-    GameObject _goStone;
+    GameObject _goStoneMesh;
+    GameObject _goStoneTransform;
     Vector3 _centerOfGravity;
     Vector3 _stoneNormal;
     //List<Voxel> _voxels;
@@ -14,9 +15,16 @@ public class Stone
     List<MeshTriangle> _triangleMesh;
     float _weight;
     float _voxelSize = 0.1f;
-    private GameObject[,,] _voxels;
+    private GameObject[,,] _voxels;//We don't want to store this, we only generate the voxels to get the normal and mass of the stone and then we forget about them
+    //The start of the normal becomes the anchor point for your stone
+    //store the start and endpoint of the normal in a gameobjects as children of the stone object as references.
+    Material _material;
+
     public Vector3 Normal;
     public float NormalTollerance;
+
+    private LineRenderer _normalRenderer;
+
 
     public GameObject NormalStart { get; private set; }
     public GameObject NormalEnd { get; private set; }
@@ -26,7 +34,7 @@ public class Stone
 
     public Stone(GameObject goStone)
     {
-        _goStone = goStone;
+        _goStoneMesh = goStone;
     }
     public void VoxeliseMesh()
     {
@@ -37,7 +45,7 @@ public class Stone
         //set the voxels active
 
         //Make a variable that store stoneMesh.bounds
-        Mesh stoneMesh = _goStone.GetComponent<MeshFilter>().mesh;
+        Mesh stoneMesh = _goStoneMesh.GetComponent<MeshFilter>().mesh;
         Vector3 centerPoint = stoneMesh.bounds.center;
 
         int gridX = Mathf.CeilToInt(stoneMesh.bounds.size.x / _voxelSize);
@@ -53,10 +61,10 @@ public class Stone
                 for (int z = 0; z < gridZ; z++)
                 {
                     Vector3 localPosition = stoneMesh.bounds.min + (new Vector3(x, y, z) * _voxelSize);
-                    if (Util.IsPointInCollider(_goStone.GetComponent<MeshCollider>(), _goStone.transform.position + _goStone.transform.TransformVector(localPosition)))
+                    if (Util.IsPointInCollider(_goStoneMesh.GetComponent<MeshCollider>(), _goStoneMesh.transform.position + _goStoneMesh.transform.TransformVector(localPosition)))
                     {
                         GameObject voxel = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        voxel.transform.SetParent(_goStone.transform);
+                        voxel.transform.SetParent(_goStoneMesh.transform);
                         voxel.transform.localEulerAngles = Vector3.zero;
                         voxel.transform.localPosition = localPosition;
                         voxel.transform.localScale = Vector3.one * _voxelSize;
@@ -77,7 +85,7 @@ public class Stone
         //OrientNormal(new Vector3(1, 0, 1));
     }
 
- 
+
     public void GetStoneNormal()
     {
         List<GameObject> voxelList = new List<GameObject>();
@@ -105,7 +113,7 @@ public class Stone
                     _stoneNormal = line;
                     NormalStart = voxelList[i];
                     NormalEnd = voxelList[j];
-                    if (Vector3.Distance(NormalStart.transform.localPosition, Vector3.zero) 
+                    if (Vector3.Distance(NormalStart.transform.localPosition, Vector3.zero)
                         > Vector3.Distance(NormalEnd.transform.localPosition, Vector3.zero))
                     {
                         NormalStart = voxelList[j];
@@ -115,7 +123,29 @@ public class Stone
             }
         }
         //Debug.Log($"Length: {Length}");
+        CreateParent();
+        VisualiseStoneNormal();
     }
+
+    public void VisualiseStoneNormal()
+    {
+        if (_normalRenderer == null)
+        {
+            _normalRenderer = _goStoneMesh.AddComponent<LineRenderer>();
+        }
+
+        _normalRenderer.positionCount = 2;
+        _normalRenderer.SetPosition(0, NormalStart.transform.position);
+        _normalRenderer.SetPosition(1, NormalEnd.transform.position);
+        _normalRenderer.startWidth = 0.1f;
+        _normalRenderer.endWidth = 0.1f;
+
+        if (_material == null)
+            _material = _goStoneMesh.GetComponent<MeshRenderer>().material;
+        _goStoneMesh.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Material/Transparent");
+
+    }
+
     public void PlaceStoneByLongestDirection()
     {
 
@@ -124,139 +154,25 @@ public class Stone
     public void OrientNormal(Vector3 normalTarget)
     {
         Quaternion rotation = Util.RotateFromTo(_stoneNormal, normalTarget);
-        _goStone.transform.localRotation = rotation;
+        _goStoneTransform.transform.localRotation = rotation;
         _stoneNormal = normalTarget * Length;
         GetStoneNormal();
+        //CreateParrent(); //refactor code to work with children/parrent
     }
 
     public void MoveStartToPosition(Vector3 target)
     {
         //Move start point to target
-        _goStone.transform.position = target;
-        
-        
+        _goStoneTransform.transform.position = target;
+        VisualiseStoneNormal();
 
     }
 
-    public class FromToVector : MonoBehaviour
+    void CreateParent()
     {
-        [SerializeField]
-        GameObject _start;
-        [SerializeField]
-        GameObject _end;
-        [SerializeField]
-        GameObject _newStart;
-        [SerializeField]
-        GameObject _newEnd;
-        [SerializeField]
-        GameObject _toRotate;
-
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            Vector3 origin = _start.transform.position - _end.transform.position;
-            Vector3 target = _newStart.transform.position - _newEnd.transform.position;
-            Debug.DrawLine(Vector3.zero, origin);
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-
-                Quaternion rotation = Util.RotateFromTo(origin, target);
-                _toRotate.transform.rotation = rotation;
-            }
-        }
-
-        
-
-    }
-
-
-    public Vector3 GetCenterOfGravity(List<Voxel> stoneVoxel)
-    {
-        //add the center position of each voxel
-        //divide result by the amount of voxel
-
-        return Vector3.zero;
-    }
-
-
-
-
-    public List<Vector3> GetMeshNormals(Mesh stone)
-    {
-        //take a random face in the mesh
-        // Get its normal
-        // make a new normal group with the face normal
-        //loop untill entire mesh is checked
-        //Get next face using Breadth First Search
-        //if angle between new face normal and group normal < tolerance
-        //add the face to the normal group
-        //get the average normal of all faces in this normal group
-        //if angle between new face normal and group normal > tolerance
-        //Make a new normal group
-        //Set next face as checked
-
-
-        _triangleMesh = new List<MeshTriangle>();
-
-        //Fetching triangles from a 3D Mesh
-        for (int i = 0; i < stone.triangles.Length - 2; i += 3)
-        {
-            int index = i;
-            Vector3 v1 = stone.vertices[stone.triangles[i]];
-            Vector3 v2 = stone.vertices[stone.triangles[i + 1]];
-            Vector3 v3 = stone.vertices[stone.triangles[i + 2]];
-            //calculate mesh normal
-            Vector3 newNormal = Vector3.Cross((v2 - v1), (v3 - v1));
-
-            MeshTriangle newTriMesh = new MeshTriangle(new int[3] { index, index + 1, index + 2 }, newNormal, new Vector3[3] { v1, v2, v3 });
-            _triangleMesh.Add(newTriMesh);
-
-            /*
-            List<TriMesh> newMeshGroup = new List<TriMesh>();
-            
-            newMeshGroup.Add(newTriMesh);
-            MeshGroups.Add(newMeshGroup);
-            newTriMesh.Group = newMeshGroup;
-            UnCheckedMeshes.Add(newTriMesh);*/
-        }
-
-        return new List<Vector3>();
-    }
-
-    public void GetNormalGroups()
-    {
-        List<MeshTriangle> uncheckedTriangles = new List<MeshTriangle>(_triangleMesh);
-        _stoneNormals = new List<NormalGroup>();
-
-        for (int i = 0; i < uncheckedTriangles.Count; i++)
-        {
-            if (i == 0)
-            {
-                _stoneNormals.Add(new NormalGroup(uncheckedTriangles[i]));
-            }
-            else
-            {
-                bool addedToGroup = false;
-                //Check the current triangle with all the normalgroups
-                for (int j = 0; j < _stoneNormals.Count; j++)
-                {
-                    if (Vector3.Angle(uncheckedTriangles[i].TriangleNormal, _stoneNormals[j].GroupNormal) < NormalTollerance)
-                    {
-                        _stoneNormals[j].AddNormal(uncheckedTriangles[i]);
-                        addedToGroup = true;
-                    }
-                }
-                if (!addedToGroup)
-                {
-                    //add a new normalgroup to _stoneNormals
-                }
-            }
-        }
+        GameObject parent = new GameObject($"{ _goStoneMesh.name }_parent");
+        parent.transform.position = NormalStart.transform.position;
+        _goStoneMesh.transform.SetParent(parent.transform);
+        _goStoneTransform = parent;
     }
 }
