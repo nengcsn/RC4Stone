@@ -80,6 +80,7 @@ public class StoneLineManager : MonoBehaviour
             var line = _lines[i];
             var length = line.Length;
             float stonesLength = 0;
+            float intersectionLength = 0.5f;
             Vector3 startPosition = line.Start;
             while (stonesLength < length && availableStones.Count > 0)
             {
@@ -92,7 +93,7 @@ public class StoneLineManager : MonoBehaviour
 
                 // Account for intersection distance for overlaping the stones
                 // Subtract from the next a given distance
-                startPosition = startPosition + (line.Normal * (nextStone.Length /*- intersection length*/));
+                startPosition = startPosition + (line.Normal * (nextStone.Length - intersectionLength));
                 //yield return new WaitForSeconds(0.5f);
                 yield return new WaitForEndOfFrame();
             }
