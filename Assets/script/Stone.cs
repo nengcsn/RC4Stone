@@ -20,7 +20,7 @@ public class Stone
     //store the start and endpoint of the normal in a gameobjects as children of the stone object as references.
     Material _material;
 
-    public Vector3 Normal;
+    //public Vector3 Normal;
     public float NormalTollerance;
 
     private LineRenderer _normalRenderer;
@@ -28,6 +28,8 @@ public class Stone
 
     public GameObject NormalStart { get; private set; }
     public GameObject NormalEnd { get; private set; }
+
+    public bool IsEndUp => NormalEnd.transform.localPosition.y > NormalStart.transform.localPosition.y;
 
     List<Stone> neighbours;
     List<SpringJoint> joints;
@@ -81,8 +83,9 @@ public class Stone
 
 
         GetStoneNormal();
-        //OrientNormal(Vector3.right);
-        //OrientNormal(new Vector3(1, 0, 1));
+        CreateParent();
+        //NormalCorrect();
+        VisualiseStoneNormal();
     }
 
 
@@ -97,8 +100,6 @@ public class Stone
                     if (_voxels[x, y, z] != null) voxelList.Add(_voxels[x, y, z]);
                 }
 
-
-
         //Vector3 longestLine = Vector3.zero;
         _stoneNormal = Vector3.zero;
 
@@ -106,11 +107,13 @@ public class Stone
         {
             for (int j = 0; j < voxelList.Count; j++)
             {
+                //Vector3 line = voxelList[i].transform.position - voxelList[j].transform.position;
                 Vector3 line = voxelList[i].transform.position - voxelList[j].transform.position;
-                if (line.magnitude > _stoneNormal.magnitude)
+
+                if (line.magnitude > Length)
                 {
                     Length = line.magnitude;
-                    _stoneNormal = line;
+                    _stoneNormal = line.normalized;
                     NormalStart = voxelList[i];
                     NormalEnd = voxelList[j];
                     if (Vector3.Distance(NormalStart.transform.localPosition, Vector3.zero)
@@ -118,13 +121,13 @@ public class Stone
                     {
                         NormalStart = voxelList[j];
                         NormalEnd = voxelList[i];
+                        //_stoneNormal = (NormalEnd.transform.localPosition - NormalStart.transform.localPosition).normalized;
+                        _stoneNormal = -_stoneNormal;
                     }
                 }
             }
         }
-        //Debug.Log($"Length: {Length}");
-        CreateParent();
-        VisualiseStoneNormal();
+        _stoneNormal = -_stoneNormal;
     }
 
     public void VisualiseStoneNormal()
@@ -146,10 +149,6 @@ public class Stone
 
     }
 
-    public void PlaceStoneByLongestDirection()
-    {
-
-    }
 
     public void OrientNormal(Vector3 normalTarget)
     {
@@ -160,6 +159,17 @@ public class Stone
         //CreateParrent(); //refactor code to work with children/parrent
     }
 
+    public void SetRotation(Quaternion rotation)
+    {
+        _goStoneTransform.transform.localRotation = rotation;
+        GetStoneNormal();
+    }
+
+    public Quaternion GetRotation()
+    {
+        return _goStoneTransform.transform.localRotation;
+    }
+
     public void MoveStartToPosition(Vector3 target)
     {
         //Move start point to target
@@ -168,10 +178,26 @@ public class Stone
 
     }
 
+    private void NormalCorrect()
+    {
+        RaycastHit hit;
+        Vector3 origin = NormalStart.transform.position + (_stoneNormal * _voxelSize * 1.5f);
+        var orGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        orGo.transform.position = origin;
+        orGo.transform.localScale = Vector3.one * 0.05f;
+        orGo.transform.parent = _goStoneTransform.transform;
+        if (Physics.Raycast(origin, _stoneNormal, out hit, _voxelSize))
+        {
+            Debug.Log($"{_goStoneTransform.transform.name} is right");
+        }
+    }
+
+
     void CreateParent()
     {
         GameObject parent = new GameObject($"{ _goStoneMesh.name }_parent");
         parent.transform.position = NormalStart.transform.position;
+        //parent.transform.rotation = Quaternion.FromToRotation(parent.transform.up, _stoneNormal) * parent.transform.rotation;
         _goStoneMesh.transform.SetParent(parent.transform);
         _goStoneTransform = parent;
     }

@@ -86,8 +86,17 @@ public class StoneLineManager : MonoBehaviour
             {
                 var nextStone = availableStones.Dequeue();
                 stonesLength += nextStone.Length;
+
+                var originalRotation = nextStone.GetRotation();
+
                 nextStone.OrientNormal(line.Normal);
                 nextStone.MoveStartToPosition(startPosition);
+
+                if (!nextStone.IsEndUp)
+                {
+                    Debug.Log($"{nextStone.NormalEnd.transform.parent.parent.name} is flipped");
+                }
+
                 //startPosition = nextStone.NormalStart.transform.position;
 
 
