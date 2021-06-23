@@ -12,7 +12,7 @@ public class Voxel2
     //01 Create properties of the voxel
     public Vector3Int Index;
     protected GameObject _voxelGO;
-    protected VoxelGrid _voxelGrid;
+    public VoxelGrid _voxelGrid;
     protected float _size;
 
     private VoxelState _status = VoxelState.Alive;

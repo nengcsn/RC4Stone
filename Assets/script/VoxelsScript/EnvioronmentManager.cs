@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EnvioronmentManager : MonoBehaviour
 {
-    VoxelGrid _voxelGrid;
+    public VoxelGrid _voxelGrid;
     // Start is called before the first frame update
     void Start()
     {
@@ -30,8 +30,21 @@ public class EnvioronmentManager : MonoBehaviour
 
     }
 
-        // Update is called once per frame
-        void Update()
+    //// 31 Create method to reset the environment
+    ///// <summary>
+    ///// Resets the environment by setting all components' state as 0
+    ///// </summary>
+    //public void ResetEnvironment()
+    //{
+    //    foreach (var component in _components)
+    //    {
+    //        component.ChangeState(0);
+    //    }
+    //}
+
+
+    // Update is called once per frame
+    void Update()
     {
         
     }

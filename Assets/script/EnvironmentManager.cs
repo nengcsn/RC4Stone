@@ -17,7 +17,7 @@ public class EnvironmentManager : MonoBehaviour
         string[] lines = Resources.Load<TextAsset>("Data/start_points").text.Split('\n');
         for (int i =0; i<lines.Length; i++)
         {
-            var testStart = CSVReader.ReadStartPoints(i);
+            var testStart = CSVReader.ReadStartPoints(i); 
             var testEnd = CSVReader.ReadEndPoints(i);
 
             print("startpoint"+i+" is" + testStart);
