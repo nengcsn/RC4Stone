@@ -288,6 +288,7 @@ GameObject:
   - component: {fileID: 963194228}
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
+  - component: {fileID: 963194229}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -360,6 +361,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 25.11, y: -32.001, z: 0}
+--- !u!114 &963194229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43a3d13a38c5e804eb5df49a4575335e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1550580992
 GameObject:
   m_ObjectHideFlags: 0
@@ -404,7 +417,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dbec025101467247a785147a4607670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _voxelGrid: {fileID: 0}
+  VoxelGrid: {fileID: 0}
 --- !u!1 &1826491018
 GameObject:
   m_ObjectHideFlags: 0
@@ -452,8 +465,10 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
-  Training: 0
+  MaxStep: 5000
+  Training: 1
+  TransparentMat: {fileID: 0}
+  BrickMat: {fileID: 0}
 --- !u!114 &1826491021
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -478,7 +493,7 @@ MonoBehaviour:
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 2
-  m_BehaviorType: 0
+  m_BehaviorType: 1
   m_BehaviorName: My Behavior
   TeamId: 0
   m_UseChildSensors: 1

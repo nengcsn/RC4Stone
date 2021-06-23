@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Stone
   - Line
+  - Manager
   layers:
   - Default
   - TransparentFX

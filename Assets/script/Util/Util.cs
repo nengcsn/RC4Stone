@@ -1,6 +1,8 @@
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json;
 
 public static class Util 
 {
@@ -74,4 +76,16 @@ public static class Util
 
         //source: https://stackoverflow.com/questions/21828801/how-to-find-correct-rotation-from-one-vector-to-another
     }
+
+    public static float[] AsArray(this Vector3 vector)
+    {
+        return new float[] { vector.x, vector.y, vector.z };
+    }
+
+    public static Vector3 AsVector(this float[] vector)
+    {
+        return new Vector3( vector[0], vector[1], vector[2]);
+    }
+
+
 }

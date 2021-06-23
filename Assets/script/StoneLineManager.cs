@@ -1,7 +1,9 @@
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Newtonsoft.Json;
 
 public class StoneLineManager : MonoBehaviour
 {
@@ -24,7 +26,11 @@ public class StoneLineManager : MonoBehaviour
     {
         //Find all the stones in my project and create stone objects
         _stones = GameObject.FindGameObjectsWithTag("Stone").Select(s => new Stone(s)).ToArray();
-        foreach (var stone in _stones) stone.VoxeliseMesh();
+        foreach (var stone in _stones) 
+        {
+            stone.VoxeliseMesh();
+            stone.WriteStoneToJson();
+        }
 
         _lines = CSVReader.ReadLines("start_points", "end_points");
 
@@ -37,26 +43,6 @@ public class StoneLineManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             StartCoroutine(PlaceStones());
-            //Queue<Stone> availableStones = new Queue<Stone>(_stones);
-            //for (int i = 0; i < _lines.Count; i++)
-            //{
-            //    var line = _lines[i];
-            //    var length = _targetNormals[i].magnitude;
-            //    float stonesLength = 0;
-            //    Vector3 startPosition = line.transform.Find("Start").transform.position;
-            //    while (stonesLength < length && availableStones.Count > 0)
-            //    {
-            //        var nextStone = availableStones.Dequeue();
-            //        stonesLength += nextStone.Length;
-            //        nextStone.OrientNormal(_targetNormals[i]);
-            //        nextStone.MoveStartToPosition(startPosition);
-            //        startPosition = nextStone.NormalStart.transform.position;
-
-            //    }
-
-            //}
-
-            
         }
     }
 
