@@ -467,8 +467,8 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 5000
   Training: 1
-  TransparentMat: {fileID: 0}
-  BrickMat: {fileID: 0}
+  TransparentMat: {fileID: 2100000, guid: 077f77057694b4740afefa37182c750f, type: 2}
+  BrickMat: {fileID: 2100000, guid: a9a2f26c03247434eab4e406c21b1290, type: 2}
 --- !u!114 &1826491021
 MonoBehaviour:
   m_ObjectHideFlags: 0

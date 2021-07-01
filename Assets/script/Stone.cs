@@ -67,6 +67,7 @@ public class Stone
     List<SpringJoint> joints;
 
     public StoneState State;
+    internal object transform;
 
     public Stone(GameObject goStone)
     {
