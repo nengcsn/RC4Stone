@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 5721764533241392829}
   - component: {fileID: 5721764533241392828}
   - component: {fileID: 5721764533241392771}
+  - component: {fileID: 497309740261158603}
+  - component: {fileID: 5358609612833546416}
   m_Layer: 0
   m_Name: Stone_10
   m_TagString: Stone
@@ -94,6 +96,35 @@ MeshCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1553672238844041575, guid: 142d84b89653e9a41be63508675e9410, type: 3}
+--- !u!114 &497309740261158603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5721764533241392770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3419e448644e5f74ba07088622f78612, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Count: 0
+--- !u!54 &5358609612833546416
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5721764533241392770}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 126
+  m_CollisionDetection: 0

@@ -87,5 +87,11 @@ public static class Util
         return new Vector3( vector[0], vector[1], vector[2]);
     }
 
+    public static bool CheckBounds(VoxelGrid grid, Vector3Int index)
+    {
+        return !(index.x < 0 || index.x >= grid.GridSize.x ||
+            index.y < 0 || index.y >= grid.GridSize.y ||
+            index.z < 0 || index.z >= grid.GridSize.z);
+    }
 
 }

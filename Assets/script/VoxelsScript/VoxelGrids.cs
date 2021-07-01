@@ -19,7 +19,7 @@ public class VoxelGrid : MonoBehaviour
     /// <param name="size">Size of the grid</param>
     /// <param name="origin">Origin of the grid</param>
     /// <param name="voxelSize">The size of each <see cref="Voxel"/></param>
-    public VoxelGrid(Vector3Int size, Vector3 origin, float voxelSize)
+    public VoxelGrid(Vector3Int size, Vector3 origin, float voxelSize, Transform parent = null)
     {
         GridSize = size;
         Origin = origin;
@@ -42,7 +42,7 @@ public class VoxelGrid : MonoBehaviour
                     Voxels[x, y, z] = new Voxel(
                         new Vector3Int(x, y, z),
                         this,
-                        cubePrefab);
+                        cubePrefab, parent);
                 }
             }
         }
@@ -56,6 +56,11 @@ public class VoxelGrid : MonoBehaviour
                 {
                     yield return Voxels[x, y, z];
                 }
+    }
+
+    public Voxel GetVoxel(Vector3Int index)
+    {
+        return Voxels[index.x, index.y, index.z];
     }
 
     public void ActivateVoxel(Vector3 index)

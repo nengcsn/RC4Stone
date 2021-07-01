@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +7,7 @@ using System.Linq;
 using Newtonsoft.Json;
 
 public enum StoneState { Placed, NotPlaced };
-public class Stone
+public class Stone : IEquatable<Stone>
 {
     GameObject _goStoneMesh;
     
@@ -69,6 +70,10 @@ public class Stone
     public StoneState State;
     internal object transform;
 
+    // Store the voxels the stone is touching
+    private List<Voxel> _currentOccupied;
+
+
     public Stone(GameObject goStone)
     {
         VoxelSize = 0.1f;
@@ -117,16 +122,11 @@ public class Stone
                 }
             }
         }
-        //_goStone.GetComponent<MeshRenderer>().enabled = false;
-
-
 
         GetStoneNormal();
         CreateParent();
-        //NormalCorrect();
         VisualiseStoneNormal();
     }
-
 
     public void GetStoneNormal()
     {
@@ -193,7 +193,7 @@ public class Stone
     {
         Quaternion rotation = Util.RotateFromTo(_stoneNormal, normalTarget);
         _goStoneParent.transform.localRotation = rotation;
-        _stoneNormal = normalTarget * Length;
+        _stoneNormal = NormalEnd.transform.localPosition - NormalStart.transform.localPosition;
         //GetStoneNormal();
         //CreateParrent(); //refactor code to work with children/parrent
     }
@@ -214,7 +214,12 @@ public class Stone
         //Move start point to target
         _goStoneParent.transform.position = target;
         //VisualiseStoneNormal();
+    }
 
+    public void MoveStartToVoxel(Voxel voxel)
+    {
+        ClearOccupied();
+        _goStoneParent.transform.localPosition = voxel.Index;
     }
 
     private void NormalCorrect()
@@ -242,6 +247,7 @@ public class Stone
         //parent.transform.rotation = Quaternion.FromToRotation(parent.transform.up, _stoneNormal) * parent.transform.rotation;
         _goStoneMesh.transform.SetParent(parent.transform);
         _goStoneParent = parent;
+        _goStoneParent.tag = "Stone";
     }
 
     public void WriteStoneToJson()
@@ -290,6 +296,7 @@ public class Stone
 
         CreateParent();
         _goStoneMesh.transform.localPosition = _localPosition.AsVector();
+        _goStoneMesh.GetComponent<StoneTrigger>().Stone = this;
     }
 
     public void SetParent(Transform parent)
@@ -297,5 +304,53 @@ public class Stone
         _goStoneParent.transform.parent = parent;
     }
 
+    //public int CountCollisions()
+    //{
+    //    return _goStoneMesh.GetComponent<StoneTrigger>().CountVoxels();
+    //}
 
+    //public void ClearCollisions()
+    //{
+    //    _goStoneMesh.GetComponent<StoneTrigger>().ClearCollisions();
+    //}
+
+    public void ClearOccupied()
+    {
+        if (_currentOccupied != null)
+        {
+            foreach (Voxel voxel in _currentOccupied)
+            {
+                voxel.Status = VoxelState.Available;
+            }
+        }
+        _currentOccupied = new List<Voxel>();
+    }
+
+    public void AddOccupiedVoxel(Voxel v)
+    {
+        _currentOccupied.Add(v);
+    }
+
+    public void OccupyVoxels()
+    {
+        foreach (Voxel voxel in _currentOccupied)
+        {
+            voxel.Status = VoxelState.Occupied;
+        }
+    }
+
+    #region Equality checks
+
+    public bool Equals(Stone other)
+    {
+        return (other != null) && (GetHashCode() == other.GetHashCode());
+    }
+
+
+    public override int GetHashCode()
+    {
+        return _goStoneParent.GetHashCode();
+    }
+
+    #endregion
 }

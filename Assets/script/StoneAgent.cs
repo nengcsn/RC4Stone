@@ -13,7 +13,6 @@ public class StoneAgent : Agent
     //  The voxel where the agent is currently
     private Voxel _voxelLocation;
 
-
     //  The VoxelGrid the agent is navigating
     private VoxelGrid _voxelGrid;
 
@@ -21,49 +20,78 @@ public class StoneAgent : Agent
     private MLEnvironment _environment;
 
     // The normalized position the agent is currently at
-    private Vector3 _normalizedIndex;
+    private Vector3 _normalisedIndex;
 
-    // 01.3 The array that contains all the components of the environment
-    Component[,,] _components;
+    bool _placedStone = false;
+
+    Vector3[] _directions = new Vector3[]
+    {
+        new Vector3(0,0,0),
+        new Vector3(0,0,0),
+        new Vector3(0,0,0),
+        new Vector3(0,0,0),
+        new Vector3(0,0,0),
+        new Vector3(0,0,0)
+    };
 
     //  Training booleans
     public bool Training;
     private bool _frozen;
 
-
     //Stone Setup
-    private List<Stone> Stones;
-    protected GameObject PrefabStone;
-    public Material TransparentMat;
-    public Material BrickMat;
-    private MeshCollider StoneCol;
-    protected GameObject CurrentStone;
+    //private List<Stone> Stones;
+    //private GameObject PrefabStone;
+    //public Material TransparentMat;
+    //public Material BrickMat;
+    //private MeshCollider StoneCol;
+    private Stone _currentStone;
     #endregion
 
     #region Unity standard methods
 
     //  Create Awake method
-    private void Awake()
+    private void Start()
     {
         // 26 Read the environment from the hierarchy
         _environment = transform.parent.gameObject.GetComponent<MLEnvironment>();
+        _voxelGrid = _environment.VoxelGrid;
         //PrefabStone = Stones;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
+        if (_placedStone)
+        {
+            _currentStone.OccupyVoxels();
+            Debug.Log(_environment.GetOccupiedRatio());
+            _placedStone = false;
+        }
+
         if (Input.GetKeyDown(KeyCode.P))
         {
-            Debug.Log("P");
-            var stone = _environment.GetUnplacedStones().First();
-            stone.MoveStartToPosition(_voxelLocation.Index);
+            PlaceAndOrientStone(Vector3.up);
+            _placedStone = true;
         }
-        else if (Input.GetKey(KeyCode.E))
+
+        if (Input.GetKeyDown(KeyCode.N))
         {
-            Debug.Log("E");
-            var stone = _environment.GetUnplacedStones().First();
-            PrefabStone.transform.Rotate(Vector3.up, 5);//Rotate stone?
+            GetStoneByLength(Random.Range(0.5f, 3.5f));
         }
+        
+
+
+        //if (Input.GetKeyDown(KeyCode.P))
+        //{
+        //    Debug.Log("P");
+        //    var stone = _environment.GetUnplacedStones().First();
+        //    stone.MoveStartToPosition(_voxelLocation.Index);
+        //}
+        //else if (Input.GetKey(KeyCode.E))
+        //{
+        //    Debug.Log("E");
+        //    var stone = _environment.GetUnplacedStones().First();
+        //    //PrefabStone.transform.Rotate(Vector3.up, 5);//Rotate stone?
+        //}
     }
 
     #endregion
@@ -72,34 +100,25 @@ public class StoneAgent : Agent
 
     public override void OnEpisodeBegin()
     {
-        var availableVoxels = _environment.VoxelGrid.GetVoxels().Where(v => v.Status == VoxelState.Available);
-
-        // 28 Get the voxel grid from the environment
-        _voxelGrid = _environment.VoxelGrid;
-
         // Start the agent in a random availble voxel
-        _voxelLocation = availableVoxels.First();
+        //_voxelLocation = availableVoxels.First();
 
         if (Training)
         {
             _frozen = false;
 
-            // 33 Find a new random position
-            int x = Random.Range(0, _voxelGrid.GridSize.x);
-            int y = Random.Range(0, _voxelGrid.GridSize.y);
-            int z = Random.Range(0, _voxelGrid.GridSize.z);
+            _currentStone = _environment.Stones[0];
 
+            var availableVoxels = _voxelGrid.GetVoxels().Where(v => v.Status == VoxelState.Available).ToList();
+            var randomVoxel = availableVoxels[Random.Range(0, availableVoxels.Count)];
+            Vector3Int position = randomVoxel.Index;
 
-            Vector3Int position = new Vector3Int(x, y, z);
-
-            //GoToVoxel(position);
-
+            GoToVoxel(position);
         }
         else
         {
-
             _frozen = true;
-
+            GoToVoxel(Vector3Int.zero);
         }
     }
 
@@ -151,7 +170,7 @@ public class StoneAgent : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         base.CollectObservations(sensor);
-        sensor.AddObservation(CurrentStone.transform.localPosition);
+        //sensor.AddObservation(_currentStone.transform.localPosition);
 
 
         // The current normalised position of the agent 
@@ -180,43 +199,112 @@ public class StoneAgent : Agent
 
         #endregion
 
-        #region Private methods
-
-        // 44 Create the method to move the agent
-        /// <summary>
-        /// Attempt to move the based on an integer action
-        /// </summary>
-        /// <param name="action">The action</param>
-        /// <returns>The success of the attempt</returns>
-        //    private bool MoveAgent(int action)
-        //{
-        //    // 45 Create the vector and assign it's value based on the action input
-        //    Vector3Int direction;
-
-        //    // 46 Set direction based on action input
-        //    if (action == 0) return true;
-        //    else if (action == 1) direction = new Vector3Int(1, 0, 0);
-        //    else if (action == 2) direction = new Vector3Int(-1, 0, 0);
-        //    else if (action == 3) direction = new Vector3Int(0, 1, 0);
-        //    else if (action == 4) direction = new Vector3Int(0, -1, 0);
-        //    else if (action == 5) direction = new Vector3Int(0, 0, 1);
-        //    else direction = new Vector3Int(0, 0, -1);
-
-        //    // 47 Check if the resulting action keeps the agent within the grid
-        //    Vector3Int destination = _voxelLocation.Index + direction;
-        //    if (destination.x < 0 || destination.x >= _voxelGrid.GridSize.x ||
-        //        destination.y < 0 || destination.y >= _voxelGrid.GridSize.y ||
-        //        destination.z < 0 || destination.z >= _voxelGrid.GridSize.z)
-        //    {
-        //        // 48 Return false if action was invalid
-        //        return false;
-        //    }
-
-        //    //// 49 Move the agent to the destination
-        //    //GoToVoxel(destination);
-
-        //    return true;
+        
     }
+    
+    #region Private methods
+
+    public void GoToVoxel(Vector3Int index)
+    {
+        _voxelLocation = _voxelGrid.GetVoxel(index);
+        SetNormalisedIndex();
+        transform.localPosition = new Vector3(index.x * _voxelGrid.VoxelSize,
+            index.y * _voxelGrid.VoxelSize,
+            index.z * _voxelGrid.VoxelSize);
+    }
+
+    private void SetNormalisedIndex()
+    {
+        _normalisedIndex = new Vector3(
+            _voxelLocation.Index.x / _voxelGrid.GridSize.x - 1,
+            _voxelLocation.Index.y / _voxelGrid.GridSize.y - 1,
+            _voxelLocation.Index.z / _voxelGrid.GridSize.z - 1);
+    }
+
+
+    /// <summary>
+    /// Attempt to move the based on an integer action
+    /// </summary>
+    /// <param name="action">The action</param>
+    /// <returns>The success of the attempt</returns>
+    private bool MoveAgent(int action)
+    {
+        // 45 Create the vector and assign it's value based on the action input
+        Vector3Int direction;
+
+        // 46 Set direction based on action input
+        if (action == 0) return true;
+        else if (action == 1) direction = new Vector3Int(1, 0, 0);
+        else if (action == 2) direction = new Vector3Int(-1, 0, 0);
+        else if (action == 3) direction = new Vector3Int(0, 1, 0);
+        else if (action == 4) direction = new Vector3Int(0, -1, 0);
+        else if (action == 5) direction = new Vector3Int(0, 0, 1);
+        else direction = new Vector3Int(0, 0, -1);
+
+        // 47 Check if the resulting action keeps the agent within the grid
+        Vector3Int destination = _voxelLocation.Index + direction;
+        if (!Util.CheckBounds(_voxelGrid, destination) 
+            || _voxelGrid.GetVoxel(destination).Status != VoxelState.Available)
+        {
+            return false;
+        }
+
+        GoToVoxel(destination);
+
+        return true;
+    }
+
+    private void PlaceAndOrientStone(Vector3 orientation)
+    {
+        //_currentStone.ClearCollisions();
+        _currentStone.MoveStartToVoxel(_voxelLocation);
+        _currentStone.OrientNormal(orientation);
+        _currentStone.State = StoneState.Placed;
+        
+    }
+
+    //private float CheckCollisions()
+    //{ 
+    //    //int col = _currentStone.CountCollisions();
+    //    Debug.Log(col);
+    //    return 0;
+    //}
+
+    /// <summary>
+    /// Gets a stone that has a length that is closer to a length
+    /// </summary>
+    /// <param name="len"></param>
+    /// <returns></returns>
+    private bool GetStoneByLength(float len)
+    {
+        float dif = float.MaxValue;
+        Stone stone = null;
+        foreach (float realLength in _environment.StonesLengths.Keys)
+        {
+            var unplacedStones = _environment.StonesLengths[realLength].Where(s => s.State == StoneState.NotPlaced);
+            if (unplacedStones.Count() > 0)
+            {
+                float currentDif = Mathf.Abs(len - realLength);
+                if (currentDif < dif)
+                {
+                    dif = currentDif;
+                    stone = unplacedStones.First();
+                    break;
+                }
+            }  
+        }
+
+        if (stone != null)
+        {
+            _currentStone = stone;
+            return true;
+        }
+        
+        return false;
+    }
+
+    
+
     #endregion
 
 }
