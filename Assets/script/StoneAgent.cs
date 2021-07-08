@@ -95,8 +95,8 @@ public class StoneAgent : Agent
 
         if (Input.GetKeyDown(KeyCode.P))
         {
-            PlaceAndOrientStone(Vector3.up);
-            _placedStone = true;
+            // Place the current stone in the current voxel
+            PlaceCurrentStone();
         }
 
         if (Input.GetKeyDown(KeyCode.N))
@@ -306,24 +306,26 @@ public class StoneAgent : Agent
         return true;
     }
 
-    private void PlaceAndOrientStone(Vector3 orientation)
+    private void PlaceCurrentStone()
     {
-        //_currentStone.ClearCollisions();
+        _currentStone.ClearOccupied();
         _currentStone.MoveStartToVoxel(_voxelLocation);
-        _currentStone.OrientNormal(orientation);
         _currentStone.State = StoneState.Placed;
-       
+
+        _placedStone = true;
     }
 
-    private void RotateStone(int index)
+    private bool RotateStone(int index)
     {
-        _currentStone.MoveStartToVoxel(_voxelLocation);
-        _currentStone.State = StoneState.Placed;
+        _currentStone.ClearOccupied();
+        _placedStone = true;
 
         if (index < _directions.Length)
         {
             _currentStone.OrientNormal(_directions[index]);
+            return true;
         }
+        else return false;
 
     }
 
