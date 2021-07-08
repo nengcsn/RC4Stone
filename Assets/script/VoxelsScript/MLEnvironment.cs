@@ -8,7 +8,7 @@ public class MLEnvironment : MonoBehaviour
 {
     public VoxelGrid VoxelGrid { get; private set; }
     public List<Stone> Stones { get; private set; }
-    private int _stoneDuplicates = 5;
+    private int _stoneDuplicates = 1;
     private Dictionary<Stone, Vector3> _platePositions;
 
     private int _startingCount;

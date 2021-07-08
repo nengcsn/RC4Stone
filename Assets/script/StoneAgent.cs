@@ -107,6 +107,7 @@ public class StoneAgent : Agent
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             RotateStone(2);
+  
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
@@ -115,9 +116,24 @@ public class StoneAgent : Agent
         }
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
+            RotateStone(4);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            RotateStone(5);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            RotateStone(6);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha6))
+        {
+            RotateStone(7);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha7))
+        {
             RotateStone(8);
         }
-
         //if (Input.GetKeyDown(KeyCode.P))
         //{
         //    Debug.Log("P");
@@ -301,6 +317,9 @@ public class StoneAgent : Agent
 
     private void RotateStone(int index)
     {
+        _currentStone.MoveStartToVoxel(_voxelLocation);
+        _currentStone.State = StoneState.Placed;
+
         if (index < _directions.Length)
         {
             _currentStone.OrientNormal(_directions[index]);
