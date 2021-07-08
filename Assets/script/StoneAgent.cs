@@ -24,14 +24,40 @@ public class StoneAgent : Agent
 
     bool _placedStone = false;
 
-    Vector3[] _directions = new Vector3[]
+    Vector3[] _directions = new Vector3[]// array of vectors of directions 
     {
-        new Vector3(0,0,0),
-        new Vector3(0,0,0),
-        new Vector3(0,0,0),
-        new Vector3(0,0,0),
-        new Vector3(0,0,0),
-        new Vector3(0,0,0)
+        new Vector3(1,0,0),
+        new Vector3(1,0.5f,0),
+        new Vector3(0.5f,1,0),
+        new Vector3(0,1,0),
+        new Vector3(-0.5f,1,0),
+        new Vector3(-1,0.5f,0),
+        new Vector3(-1,0,0),
+        new Vector3(-0.5f,-1,0),
+        new Vector3(-1,-0.5f,0),
+        new Vector3(0,-1,0),
+        new Vector3(1,-0.5f,0),
+        new Vector3(0.5f,-1,0),
+
+        new Vector3(0,0,1),
+        new Vector3(0,0.5f,1),
+        new Vector3(0,1,0.5f),
+        new Vector3(0,0.5f,-1),
+        new Vector3(0,1,-0.5f), 
+        new Vector3(0,0,-1),
+        new Vector3(0,-0.5f,-1),
+        new Vector3(0,-1,-0.5f),
+        new Vector3(0,-0.5f,1),
+        new Vector3(0,-1,0.5f),
+
+        new Vector3(0.5f,0,1),
+        new Vector3(1,0,0.5f),
+        new Vector3(0.5f,0,-1),
+        new Vector3(1,0,-0.5f),
+        new Vector3(-0.5f,0,-1),
+        new Vector3(-1,0,-0.5f),
+        new Vector3(-0.5f,0,1),
+        new Vector3(-1,0,0.5f),
     };
 
     //  Training booleans
@@ -77,8 +103,11 @@ public class StoneAgent : Agent
         {
             GetStoneByLength(Random.Range(0.5f, 3.5f));
         }
-        
 
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            RotateStone(_normalisedIndex);
+        }
 
         //if (Input.GetKeyDown(KeyCode.P))
         //{
@@ -130,13 +159,13 @@ public class StoneAgent : Agent
 
         // Update the available voxels list
 
-        // Action to move the agent through the voxel grid
+        // Action to move the agent through the voxel grid v
 
 
-        // Action to select a stone to place
-        // Action to move a stone to a position                            ---> Reward or penalise
-        //   Check how many voxels the stone intersects
-        //   Occupy the voxels that you have set
+        // Action to select a stone to place v
+        // Action to move a stone to a position  v                          ---> Reward or penalise
+        //   Check how many voxels the stone intersects v
+        //   Occupy the voxels that you have set v
         // Action to set the stone's orientation (in increments of 15deg)  ---> Reward or penalise
         //   Check how many voxels the stone intersects
         //   Occupy the voxels that you have set
@@ -260,7 +289,17 @@ public class StoneAgent : Agent
         _currentStone.MoveStartToVoxel(_voxelLocation);
         _currentStone.OrientNormal(orientation);
         _currentStone.State = StoneState.Placed;
-        
+       
+    }
+
+    private void RotateStone(Vector3 _directions)
+    {
+        ///该变石头方向调用上面单子里的任意一个方向
+        ////_currentStone.ClearCollisions();
+        //_currentStone.OrientNormal(_directions);
+        _currentStone.OrientNormal(transform.position + _directions);
+
+
     }
 
     //private float CheckCollisions()
