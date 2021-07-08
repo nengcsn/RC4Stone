@@ -104,9 +104,18 @@ public class StoneAgent : Agent
             GetStoneByLength(Random.Range(0.5f, 3.5f));
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            RotateStone(_normalisedIndex);
+            RotateStone(2);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            RotateStone(3);
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            RotateStone(8);
         }
 
         //if (Input.GetKeyDown(KeyCode.P))
@@ -226,11 +235,9 @@ public class StoneAgent : Agent
             //}
         }
 
-        #endregion
-
-        
     }
-    
+    #endregion
+
     #region Private methods
 
     public void GoToVoxel(Vector3Int index)
@@ -292,13 +299,12 @@ public class StoneAgent : Agent
        
     }
 
-    private void RotateStone(Vector3 _directions)
+    private void RotateStone(int index)
     {
-        ///该变石头方向调用上面单子里的任意一个方向
-        ////_currentStone.ClearCollisions();
-        //_currentStone.OrientNormal(_directions);
-        _currentStone.OrientNormal(transform.position + _directions);
-
+        if (index < _directions.Length)
+        {
+            _currentStone.OrientNormal(_directions[index]);
+        }
 
     }
 
