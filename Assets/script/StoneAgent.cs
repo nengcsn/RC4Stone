@@ -146,6 +146,11 @@ public class StoneAgent : Agent
         //    var stone = _environment.GetUnplacedStones().First();
         //    //PrefabStone.transform.Rotate(Vector3.up, 5);//Rotate stone?
         //}
+        if (Input.GetKeyDown(KeyCode.UpArrow)) MoveAgent(1);
+        if (Input.GetKeyDown(KeyCode.DownArrow)) MoveAgent(2);
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) MoveAgent(3);
+        if (Input.GetKeyDown(KeyCode.RightArrow)) MoveAgent(4);
+        if (Input.GetKeyDown(KeyCode.W)) MoveAgent(5);
     }
 
     #endregion
@@ -250,6 +255,7 @@ public class StoneAgent : Agent
             //PrefabStone.transform.Rotate(Vector3.up, 5);//Rotate the prefab
             //}
         }
+  
 
     }
     #endregion

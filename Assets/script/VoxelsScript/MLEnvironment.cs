@@ -8,7 +8,7 @@ public class MLEnvironment : MonoBehaviour
 {
     public VoxelGrid VoxelGrid { get; private set; }
     public List<Stone> Stones { get; private set; }
-    private int _stoneDuplicates = 1;
+    private int _stoneDuplicates = 3;
     private Dictionary<Stone, Vector3> _platePositions;
 
     private int _startingCount;
@@ -114,7 +114,7 @@ public class MLEnvironment : MonoBehaviour
         Vector3 plateOrigin = new Vector3(-(8 * step), 0, 0);
         for (int x = 0; x < rowCount; x++)
         {
-            for (int z = 0; z < 10; z++)
+            for (int z = 0; z < 50; z++)
             {
                 if (i < Stones.Count)
                 {
