@@ -11,14 +11,12 @@ public class StonePosition : MonoBehaviour
 
     private void Update()
     {
-        positionText.text = "Stone Position:" + stonePosition;
+        positionText.text = "Stone_1 Position:" + stonePosition;
 
+
+        //
         positionText = GameObject.Find("TextStone01").GetComponent<Text>();
         positionText.transform.position = GameObject.Find("Stone_1").transform.position;
-
-
-
-
-}
+    }
 
 }
