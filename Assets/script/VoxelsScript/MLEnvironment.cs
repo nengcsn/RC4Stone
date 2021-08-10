@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Newtonsoft.Json;
+using UnityEngine.UI;
 
 public class MLEnvironment : MonoBehaviour
 {
@@ -15,6 +16,8 @@ public class MLEnvironment : MonoBehaviour
 
     public Dictionary<float, List<Stone>> StonesLengths { get; private set; }
 
+    [SerializeField]
+    Text _voidRatio;
 
     StoneAgent _agent;
     // 01.4 The selected component
@@ -46,6 +49,11 @@ public class MLEnvironment : MonoBehaviour
         {
             SelectVoxel();
         }
+        if (_voidRatio != null)
+        {
+            _voidRatio.text = $"Current Void Ratio: {GetOccupiedRatio().ToString("F2")}";
+        }
+
     }
     #endregion
 
@@ -159,7 +167,7 @@ public class MLEnvironment : MonoBehaviour
     /// <summary>
     /// Select a component and assign Agent position with mouse click
     /// </summary>
-    private void SelectVoxel()
+    public void SelectVoxel()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
@@ -181,7 +189,7 @@ public class MLEnvironment : MonoBehaviour
         }
     }
 
-    public float GetOccupiedRatio()
+    public float GetOccupiedRatio()//occcupied voxel ratio
     {
         float current = VoxelGrid.GetVoxels().Count(v => v.Status == VoxelState.Occupied) * 1f;
         return current / _startingCount;

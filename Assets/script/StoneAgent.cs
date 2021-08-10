@@ -22,6 +22,8 @@ public class StoneAgent : Agent
     // The normalized position the agent is currently at
     private Vector3 _normalisedIndex;
 
+    private float _voidRatioThreshold;
+
     bool _placedStone = false;
 
     Vector3[] _directions = new Vector3[]// array of vectors of directions 
@@ -155,10 +157,13 @@ public class StoneAgent : Agent
 
     #endregion
 
-    #region MLAgents methods
+     #region MLAgents methods
 
     public override void OnEpisodeBegin()
     {
+        // 29 Read the target initial void ratio
+        _voidRatioThreshold = Academy.Instance.EnvironmentParameters.GetWithDefault("void_ratio", 0.055f);
+
         // Start the agent in a random availble voxel
         //_voxelLocation = availableVoxels.First();
 
@@ -203,7 +208,30 @@ public class StoneAgent : Agent
 
         // Check if a target percentage of voxels have been occupied
 
-        //Action 
+        //try to add reward to Action 
+        if (!_frozen)
+        {
+            int movementAction = int action;
+
+            if (MoveAgent(movementAction))
+            {
+                // 50 If action was valid, add reward
+                AddReward(0.0001f);
+            }
+            else
+            {
+                // 51 Otherwise, apply penalty
+                AddReward(-0.0001f);
+            }
+
+            if (_environment.GetOccupiedRatio() <= _voidRatioThreshold)
+            {
+
+                print($"Succeeded with {_voidRatioThreshold}");
+                AddReward(1f);
+                EndEpisode();
+            }
+        }
 
         var dirToGo = Vector3.zero;
         var rotateDir = Vector3.zero;
@@ -233,6 +261,37 @@ public class StoneAgent : Agent
 
 
         // The current normalised position of the agent 
+        // Normalized index of the agent [3 Observations]
+        _normalisedIndex = new Vector3(
+            _voxelLocation.Index.x / _voxelGrid.GridSize.x - 1,
+            _voxelLocation.Index.y / _voxelGrid.GridSize.y - 1,
+            _voxelLocation.Index.z / _voxelGrid.GridSize.z - 1);
+        sensor.AddObservation(_normalisedIndex);
+
+        //  Existance of face neighbours and its state (occupied or not) [6 Observations]
+        var neighbours = _voxelLocation._voxelGrid();
+        for (int i = 0; i < neighbours.Length; i++)
+        {
+            if (neighbours[i] != null)
+            {
+                //  If neighbour voxel is occupied
+                if (neighbours[i].IsOccupied) sensor.AddObservation(1);
+                // If neighbour voxel is not occupied
+                else sensor.AddObservation(2);
+            }
+            //  If neighbour voxel does not exist
+            else sensor.AddObservation(0);
+
+        }
+
+        if (_voxelLocation.IsOccupied)
+        {
+            sensor.AddObservation(0);
+        }
+        else sensor.AddObservation(1);
+
+        //  Ratio of voids [1 Observation]
+        sensor.AddObservation(_environment.GetOccupiedRatio());
         // How many stones have been placed
         // How many stones are left to be placed
         // How many voxels are occupied / percentage
@@ -241,21 +300,113 @@ public class StoneAgent : Agent
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
+        //if (Input.GetKeyDown(KeyCode.P))
+        //{
+        //    Debug.Log("P");
+        //    var stone = _environment.GetUnplacedStones().First();
+        //    stone.MoveStartToPosition(_voxelLocation.Index);
+        //}
+        //else if (Input.GetKey(KeyCode.E))
+        //{
+        //    Debug.Log("E");
+
+
+        //    //var stone = _environment.GetUnplacedStones().First();
+        //    //var CurrentStone = _environment.GetUnplacedStones().First();
+        //    //PrefabStone.transform.Rotate(Vector3.up, 5);//Rotate the prefab
+        //    //}
+        //}
+        var discreteActions = actionsOut.DiscreteActions;
+        discreteActions[0] = 0;
+
         if (Input.GetKeyDown(KeyCode.P))
         {
-            Debug.Log("P");
-            var stone = _environment.GetUnplacedStones().First();
-            stone.MoveStartToPosition(_voxelLocation.Index);
+            // Place the current stone in the current voxel
+            PlaceCurrentStone();
+            discreteActions[0] = 1;
         }
-        else if (Input.GetKey(KeyCode.E))
+
+        if (Input.GetKeyDown(KeyCode.N))
         {
-            Debug.Log("E");
-            //var stone = _environment.GetUnplacedStones().First();
-            //var CurrentStone = _environment.GetUnplacedStones().First();
-            //PrefabStone.transform.Rotate(Vector3.up, 5);//Rotate the prefab
-            //}
+            GetStoneByLength(Random.Range(0.5f, 3.5f));
+            discreteActions[0] = 2;
         }
-  
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            RotateStone(2);
+            discreteActions[0] = 3;
+
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            RotateStone(3);
+            discreteActions[0] = 4;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            RotateStone(4);
+            discreteActions[0] = 5;
+
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            RotateStone(5);
+            discreteActions[0] = 6;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            RotateStone(6);
+            discreteActions[0] = 7;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha6))
+        {
+            RotateStone(7);
+            discreteActions[0] = 8;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha7))
+        {
+            RotateStone(8);
+            discreteActions[0] = 9;
+        }
+        //if (Input.GetKeyDown(KeyCode.P))
+        //{
+        //    Debug.Log("P");
+        //    var stone = _environment.GetUnplacedStones().First();
+        //    stone.MoveStartToPosition(_voxelLocation.Index);
+        //}
+        //else if (Input.GetKey(KeyCode.E))
+        //{
+        //    Debug.Log("E");
+        //    var stone = _environment.GetUnplacedStones().First();
+        //    //PrefabStone.transform.Rotate(Vector3.up, 5);//Rotate stone?
+        //}
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            MoveAgent(1);
+            discreteActions[0] = 10;
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        { 
+            MoveAgent(2);
+            discreteActions[0] = 11;
+        }
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            MoveAgent(3);
+            discreteActions[0] = 12;
+        }
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            MoveAgent(4);
+            discreteActions[0] = 13;
+        }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            MoveAgent(5);
+            discreteActions[0] = 14;
+        }
 
     }
     #endregion
@@ -375,8 +526,13 @@ public class StoneAgent : Agent
         return false;
     }
 
-    
+    public void UnfreezeAgent()
+    {
+        _frozen = false;
+    }
 
-    #endregion
+  
+
+#endregion
 
 }
