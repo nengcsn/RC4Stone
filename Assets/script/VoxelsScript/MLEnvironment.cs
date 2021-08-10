@@ -10,7 +10,7 @@ public class MLEnvironment : MonoBehaviour
     public VoxelGrid VoxelGrid { get; private set; }
     public List<Stone> Stones { get; private set; }
     private int _stoneDuplicates = 3;
-    private Dictionary<Stone, Vector3> _platePositions;
+    public Dictionary<Stone, Vector3> PlatePositions;
 
     private int _startingCount;
 
@@ -29,7 +29,7 @@ public class MLEnvironment : MonoBehaviour
     void Awake()
     {
         Stones = new List<Stone>();
-        _platePositions = new Dictionary<Stone, Vector3>();
+        PlatePositions = new Dictionary<Stone, Vector3>();
 
         //  Get the Agent from the hierarchy
         _agent = GameObject.FindWithTag("Agent").GetComponent<StoneAgent>();
@@ -62,6 +62,11 @@ public class MLEnvironment : MonoBehaviour
     public IEnumerable<Stone> GetUnplacedStones()
     {
         return Stones.Where(s => s.State == StoneState.NotPlaced);
+    }
+
+    public IEnumerable<Stone> GetPlacedStones()
+    {
+        return Stones.Where(s => s.State != StoneState.NotPlaced);
     }
 
     //// 37.1 Create method to the component at a given voxel
@@ -130,7 +135,7 @@ public class MLEnvironment : MonoBehaviour
                     var pos = plateOrigin + new Vector3(x * step, 0, (z * step) + 1);
                     stone.MoveStartToPosition(pos);
                     stone.OrientNormal(Vector3.forward);
-                    _platePositions.Add(stone, pos);
+                    PlatePositions.Add(stone, pos);
                     i++;
                 }
             }

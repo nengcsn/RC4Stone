@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 public enum StoneState { Placed, NotPlaced };
 public class Stone : IEquatable<Stone>
 {
-    GameObject _goStoneMesh;
+    public GameObject GoStoneMesh;
     
     [JsonProperty]
     float[] _localPosition;
@@ -77,7 +77,7 @@ public class Stone : IEquatable<Stone>
     public Stone(GameObject goStone)
     {
         VoxelSize = 0.1f;
-        _goStoneMesh = goStone;
+        GoStoneMesh = goStone;
         State = StoneState.NotPlaced;
     }
 
@@ -91,7 +91,7 @@ public class Stone : IEquatable<Stone>
         //set the voxels active
 
         //Make a variable that store stoneMesh.bounds
-        Mesh stoneMesh = _goStoneMesh.GetComponent<MeshFilter>().mesh;
+        Mesh stoneMesh = GoStoneMesh.GetComponent<MeshFilter>().mesh;
         Vector3 centerPoint = stoneMesh.bounds.center;
 
         int gridX = Mathf.CeilToInt(stoneMesh.bounds.size.x / VoxelSize);
@@ -107,10 +107,10 @@ public class Stone : IEquatable<Stone>
                 for (int z = 0; z < gridZ; z++)
                 {
                     Vector3 localPosition = stoneMesh.bounds.min + (new Vector3(x, y, z) * VoxelSize);
-                    if (Util.IsPointInCollider(_goStoneMesh.GetComponent<MeshCollider>(), _goStoneMesh.transform.position + _goStoneMesh.transform.TransformVector(localPosition)))
+                    if (Util.IsPointInCollider(GoStoneMesh.GetComponent<MeshCollider>(), GoStoneMesh.transform.position + GoStoneMesh.transform.TransformVector(localPosition)))
                     {
                         GameObject voxel = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        voxel.transform.SetParent(_goStoneMesh.transform);
+                        voxel.transform.SetParent(GoStoneMesh.transform);
                         voxel.transform.localEulerAngles = Vector3.zero;
                         voxel.transform.localPosition = localPosition;
                         voxel.transform.localScale = Vector3.one * VoxelSize;
@@ -173,7 +173,7 @@ public class Stone : IEquatable<Stone>
     {
         if (_normalRenderer == null)
         {
-            _normalRenderer = _goStoneMesh.AddComponent<LineRenderer>();
+            _normalRenderer = GoStoneMesh.AddComponent<LineRenderer>();
         }
 
         _normalRenderer.positionCount = 2;
@@ -183,8 +183,8 @@ public class Stone : IEquatable<Stone>
         _normalRenderer.endWidth = 0.1f;
 
         if (_material == null)
-            _material = _goStoneMesh.GetComponent<MeshRenderer>().material;
-        _goStoneMesh.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Material/Transparent");
+            _material = GoStoneMesh.GetComponent<MeshRenderer>().material;
+        GoStoneMesh.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Material/Transparent");
 
     }
 
@@ -241,19 +241,19 @@ public class Stone : IEquatable<Stone>
 
     void CreateParent()
     {
-        GameObject parent = new GameObject($"{ _goStoneMesh.name }_parent");
+        GameObject parent = new GameObject($"{ GoStoneMesh.name }_parent");
         parent.transform.position = NormalStart.transform.position;
         parent.name = PrefabName + "(Parent)";
         //parent.transform.rotation = Quaternion.FromToRotation(parent.transform.up, _stoneNormal) * parent.transform.rotation;
-        _goStoneMesh.transform.SetParent(parent.transform);
+        GoStoneMesh.transform.SetParent(parent.transform);
         _goStoneParent = parent;
         _goStoneParent.tag = "Stone";
     }
 
     public void WriteStoneToJson()
     {
-        _localPosition = _goStoneMesh.transform.localPosition.AsArray();
-        PrefabName = _goStoneMesh.name;
+        _localPosition = GoStoneMesh.transform.localPosition.AsArray();
+        PrefabName = GoStoneMesh.name;
         _parentPosition = _goStoneParent.transform.position.AsArray();
         _normalArray = _stoneNormal.AsArray();
         _normalStart = NormalStart.transform.localPosition.AsArray();
@@ -281,22 +281,22 @@ public class Stone : IEquatable<Stone>
         _stoneNormal = _normalArray.AsVector();
 
         GameObject prefab = Resources.Load<GameObject>($"Prefabs/Stones/{PrefabName}");
-        _goStoneMesh = GameObject.Instantiate(prefab);
+        GoStoneMesh = GameObject.Instantiate(prefab);
         
         //var empty = new GameObject();
         NormalStart = new GameObject();
-        NormalStart.transform.parent = _goStoneMesh.transform;
+        NormalStart.transform.parent = GoStoneMesh.transform;
         NormalStart.transform.localPosition = _normalStart.AsVector();
         NormalStart.transform.name = "Start";
 
         NormalEnd = new GameObject();
-        NormalEnd.transform.parent = _goStoneMesh.transform;
+        NormalEnd.transform.parent = GoStoneMesh.transform;
         NormalEnd.transform.localPosition = _normalEnd.AsVector();
         NormalEnd.transform.name = "End";
 
         CreateParent();
-        _goStoneMesh.transform.localPosition = _localPosition.AsVector();
-        _goStoneMesh.GetComponent<StoneTrigger>().Stone = this;
+        GoStoneMesh.transform.localPosition = _localPosition.AsVector();
+        GoStoneMesh.GetComponent<StoneTrigger>().Stone = this;
     }
 
     public void SetParent(Transform parent)
@@ -338,6 +338,20 @@ public class Stone : IEquatable<Stone>
             voxel.Status = VoxelState.Occupied;
         }
     }
+
+    #region Stone functions
+    public bool ResetStone(Vector3 placePosition)
+    {
+        if (State != StoneState.Placed) return false;
+        State = StoneState.NotPlaced;
+
+        MoveStartToPosition(placePosition);
+        OrientNormal(Vector3.forward);
+        return true;
+    }
+
+
+    #endregion
 
     #region Equality checks
 

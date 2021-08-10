@@ -8,6 +8,15 @@ using Unity.MLAgents.Sensors;
 
 public class StoneAgent : Agent
 {
+    /// <summary>
+    /// The agent has 3 discrete action branches
+    /// 0: Movment
+    /// 1: Rotation
+    /// 2: Stone selection
+    ///     Either remove a stone or add a stone from the available library
+    /// </summary>
+
+
     #region Fields and Properties
 
     //  The voxel where the agent is currently
@@ -26,7 +35,7 @@ public class StoneAgent : Agent
 
     bool _placedStone = false;
 
-    Vector3[] _directions = new Vector3[]// array of vectors of directions 
+    Vector3[] _directions = new Vector3[30]// array of vectors of directions 
     {
         new Vector3(1,0,0),
         new Vector3(1,0.5f,0),
@@ -45,7 +54,7 @@ public class StoneAgent : Agent
         new Vector3(0,0.5f,1),
         new Vector3(0,1,0.5f),
         new Vector3(0,0.5f,-1),
-        new Vector3(0,1,-0.5f), 
+        new Vector3(0,1,-0.5f),
         new Vector3(0,0,-1),
         new Vector3(0,-0.5f,-1),
         new Vector3(0,-1,-0.5f),
@@ -60,6 +69,7 @@ public class StoneAgent : Agent
         new Vector3(-1,0,-0.5f),
         new Vector3(-0.5f,0,1),
         new Vector3(-1,0,0.5f),
+
     };
 
     //  Training booleans
@@ -109,7 +119,7 @@ public class StoneAgent : Agent
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             RotateStone(2);
-  
+
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
@@ -157,7 +167,7 @@ public class StoneAgent : Agent
 
     #endregion
 
-     #region MLAgents methods
+    #region MLAgents methods
 
     public override void OnEpisodeBegin()
     {
@@ -211,7 +221,7 @@ public class StoneAgent : Agent
         //try to add reward to Action 
         if (!_frozen)
         {
-            int movementAction = int action;
+            int movementAction = actions.DiscreteActions[0];//Set the correct discrete action branch for movement
 
             if (MoveAgent(movementAction))
             {
@@ -224,13 +234,69 @@ public class StoneAgent : Agent
                 AddReward(-0.0001f);
             }
 
+            int rotationAction = actions.DiscreteActions[1];
+
+            if (RotateStone(rotationAction))
+            {
+                // 50 If action was valid, add reward
+                AddReward(0.0001f);
+            }
+            else
+            {
+                // 51 Otherwise, apply penalty
+                AddReward(-0.0001f);
+            }
+
+            int placeRemoveStoneAction = actions.DiscreteActions[2];
+            if (placeRemoveStoneAction == 1)
+            {
+                if (PlaceLongestStone())
+                {
+                    // 50 If action was valid, add reward
+                    AddReward(0.0001f);
+                }
+                else
+                {
+                    // 51 Otherwise, apply penalty
+                    AddReward(-0.0001f);
+                }
+            }
+            else if (placeRemoveStoneAction == 2)
+            {
+                Stone parentStone = null;
+                foreach (Stone stone in _environment.GetPlacedStones())
+                {
+                    if (Util.IsPointInCollider(stone.GoStoneMesh.GetComponent<MeshCollider>(), _voxelLocation.VoxelGO.transform.position))
+                    {
+                        parentStone = stone;
+                    }
+                }
+
+                if (parentStone == null)
+                    AddReward(-0.0001f);
+                else if (parentStone.ResetStone(_environment.PlatePositions[parentStone]))
+                {
+                    AddReward(0.0001f);
+                }
+                else
+                {
+                    AddReward(-0.0001f);
+                }
+
+            }
+
+
+
+            //Check if the grid is sattisfied and finish the training episode
             if (_environment.GetOccupiedRatio() <= _voidRatioThreshold)
             {
 
-                print($"Succeeded with {_voidRatioThreshold}");
+                Debug.Log($"Succeeded with {_voidRatioThreshold}");
                 AddReward(1f);
                 EndEpisode();
             }
+
+
         }
 
         var dirToGo = Vector3.zero;
@@ -269,13 +335,13 @@ public class StoneAgent : Agent
         sensor.AddObservation(_normalisedIndex);
 
         //  Existance of face neighbours and its state (occupied or not) [6 Observations]
-        var neighbours = _voxelLocation._voxelGrid();
+        Voxel[] neighbours = _voxelLocation.GetNeighbours();
         for (int i = 0; i < neighbours.Length; i++)
         {
             if (neighbours[i] != null)
             {
                 //  If neighbour voxel is occupied
-                if (neighbours[i].IsOccupied) sensor.AddObservation(1);
+                if (neighbours[i].Status != VoxelState.Available) sensor.AddObservation(1);
                 // If neighbour voxel is not occupied
                 else sensor.AddObservation(2);
             }
@@ -284,7 +350,7 @@ public class StoneAgent : Agent
 
         }
 
-        if (_voxelLocation.IsOccupied)
+        if (_voxelLocation.Status != VoxelState.Available)
         {
             sensor.AddObservation(0);
         }
@@ -388,7 +454,7 @@ public class StoneAgent : Agent
             discreteActions[0] = 10;
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
-        { 
+        {
             MoveAgent(2);
             discreteActions[0] = 11;
         }
@@ -452,7 +518,7 @@ public class StoneAgent : Agent
 
         // 47 Check if the resulting action keeps the agent within the grid
         Vector3Int destination = _voxelLocation.Index + direction;
-        if (!Util.CheckBounds(_voxelGrid, destination) 
+        if (!Util.CheckBounds(_voxelGrid, destination)
             || _voxelGrid.GetVoxel(destination).Status != VoxelState.Available)
         {
             return false;
@@ -482,8 +548,8 @@ public class StoneAgent : Agent
             _currentStone.OrientNormal(_directions[index]);
             return true;
         }
+        else if (index == 30) return true;
         else return false;
-
     }
 
     //private float CheckCollisions()
@@ -492,6 +558,27 @@ public class StoneAgent : Agent
     //    Debug.Log(col);
     //    return 0;
     //}
+
+    private bool PlaceLongestStone()
+    {
+        Dictionary<float, List<Stone>> availableStoneLengths = new Dictionary<float, List<Stone>>();
+        foreach (var length in _environment.StonesLengths.Keys)
+        {
+            var availableStones = _environment.StonesLengths[length].Where(s => s.State == StoneState.NotPlaced).ToList();
+            if (availableStones.Count > 0) availableStoneLengths.Add(length, availableStones);
+        }
+        Stone stone = availableStoneLengths[_environment.StonesLengths.Keys.Max()].First();
+
+        if (stone == null) return false;
+
+        _currentStone = stone;
+        PlaceCurrentStone();
+        return true;
+    }
+
+
+
+
 
     /// <summary>
     /// Gets a stone that has a length that is closer to a length
@@ -514,7 +601,7 @@ public class StoneAgent : Agent
                     stone = unplacedStones.First();
                     break;
                 }
-            }  
+            }
         }
 
         if (stone != null)
@@ -522,7 +609,7 @@ public class StoneAgent : Agent
             _currentStone = stone;
             return true;
         }
-        
+
         return false;
     }
 
@@ -531,8 +618,8 @@ public class StoneAgent : Agent
         _frozen = false;
     }
 
-  
 
-#endregion
+
+    #endregion
 
 }

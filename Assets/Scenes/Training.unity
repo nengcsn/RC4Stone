@@ -440,6 +440,46 @@ PrefabInstance:
       propertyPath: m_Name
       value: StoneAgent
       objectReference: {fileID: 0}
+    - target: {fileID: 7645848997352425764, guid: 34bfdb784c5431e458dd64f9ee3430c8,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorActionSize.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7645848997352425764, guid: 34bfdb784c5431e458dd64f9ee3430c8,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorActionSize.Array.data[0]
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7645848997352425764, guid: 34bfdb784c5431e458dd64f9ee3430c8,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorActionSize.Array.data[1]
+      value: 31
+      objectReference: {fileID: 0}
+    - target: {fileID: 7645848997352425764, guid: 34bfdb784c5431e458dd64f9ee3430c8,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorActionSize.Array.data[2]
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7645848997352425764, guid: 34bfdb784c5431e458dd64f9ee3430c8,
+        type: 3}
+      propertyPath: m_BrainParameters.m_ActionSpec.BranchSizes.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7645848997352425764, guid: 34bfdb784c5431e458dd64f9ee3430c8,
+        type: 3}
+      propertyPath: m_BrainParameters.m_ActionSpec.BranchSizes.Array.data[0]
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7645848997352425764, guid: 34bfdb784c5431e458dd64f9ee3430c8,
+        type: 3}
+      propertyPath: m_BrainParameters.m_ActionSpec.BranchSizes.Array.data[1]
+      value: 31
+      objectReference: {fileID: 0}
+    - target: {fileID: 7645848997352425764, guid: 34bfdb784c5431e458dd64f9ee3430c8,
+        type: 3}
+      propertyPath: m_BrainParameters.m_ActionSpec.BranchSizes.Array.data[2]
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 34bfdb784c5431e458dd64f9ee3430c8, type: 3}
 --- !u!4 &1469648410 stripped
@@ -492,3 +532,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dbec025101467247a785147a4607670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _voidRatio: {fileID: 0}

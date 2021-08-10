@@ -8,7 +8,7 @@ public class Voxel
 {
     //01 Create properties of the voxel
     public Vector3Int Index;
-    protected GameObject _voxelGO;
+    public GameObject VoxelGO;
     public VoxelGrid _voxelGrid;
     protected float _size;
 
@@ -22,7 +22,7 @@ public class Voxel
         }
         set
         {
-            _voxelGO.SetActive(value == VoxelState.Available);
+            VoxelGO.SetActive(value == VoxelState.Available);
             _status = value;
         }
     }
@@ -38,14 +38,14 @@ public class Voxel
         Index = index;
         _voxelGrid = voxelgrid;
         _size = _voxelGrid.VoxelSize;
-        _voxelGO = GameObject.Instantiate(voxelGameObject, 
+        VoxelGO = GameObject.Instantiate(voxelGameObject, 
             (_voxelGrid.Origin + Index) * _size, Quaternion.identity);
 
-        _voxelGO.transform.localScale *= _voxelGrid.VoxelSize*0.9f;
-        _voxelGO.name = $"Voxel_{Index.x}_{Index.y}_{Index.z}";
-        if (parent != null) _voxelGO.transform.parent = parent;
+        VoxelGO.transform.localScale *= _voxelGrid.VoxelSize*0.9f;
+        VoxelGO.name = $"Voxel_{Index.x}_{Index.y}_{Index.z}";
+        if (parent != null) VoxelGO.transform.parent = parent;
 
-        _voxelGO.GetComponent<VoxelTrigger>().Voxel = this;
+        VoxelGO.GetComponent<VoxelTrigger>().Voxel = this;
         
         Status = VoxelState.Dead;
     }
@@ -56,5 +56,32 @@ public class Voxel
     /// </summary>
     public Voxel () { }
 
+
+    public Voxel[] GetNeighbours()
+    {
+        List<Vector3Int> directions = new List<Vector3Int>()
+        {
+            new Vector3Int(-1,0,0),
+            new Vector3Int(1,0,0),
+            new Vector3Int(0,-1,0),
+            new Vector3Int(0,1,0),
+            new Vector3Int(0,0,-1),
+            new Vector3Int(0,0,1)
+        };
+
+
+        Voxel[] neighbours = new Voxel[6];
+
+        for (int i = 0; i < 6; i++)
+        {
+            if (Util.CheckBounds(_voxelGrid, Index + directions[i]))
+            {
+                neighbours[i] = _voxelGrid.GetVoxel(Index + directions[i]);
+            }
+        } 
+        //if (neighbours.Count < 1) Debug.Log("No neighbours found");
+
+        return neighbours;
+    }
 
 }
