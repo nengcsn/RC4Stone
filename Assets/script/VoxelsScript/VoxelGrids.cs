@@ -69,4 +69,14 @@ public class VoxelGrid : MonoBehaviour
         voxel.Status = VoxelState.Available;
     }
    
+    public void Restart()
+    {
+        foreach (var voxel in Voxels)
+        {
+            if (voxel.Status != VoxelState.Dead)
+            {
+                voxel.Status = VoxelState.Available;
+            }
+        }
+    }
 }

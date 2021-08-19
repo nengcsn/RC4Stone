@@ -298,7 +298,7 @@ public class StoneAgent : Agent
 
 
             //Check if the grid is sattisfied and finish the training episode
-            if (_environment.GetOccupiedRatio() <= _voidRatioThreshold)
+            if (_environment.GetVoidRatio() <= _voidRatioThreshold)
             {
 
                 Debug.Log($"Succeeded with {_voidRatioThreshold}");
@@ -366,7 +366,7 @@ public class StoneAgent : Agent
         }
         else sensor.AddObservation(1);
         //  Ratio of voids [1 Observation]
-        sensor.AddObservation(_environment.GetOccupiedRatio());
+        sensor.AddObservation(_environment.GetVoidRatio());
         // How many stones have been placed
         sensor.AddObservation(_environment.GetPlacedStones().Count());
         // How many stones are left to be placed

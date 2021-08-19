@@ -37,6 +37,9 @@ public class MLEnvironment : MonoBehaviour
         CreateStones();
         CreateGridFromFile("Data/activate_voxels_vector");
 
+        Debug.Log(GetVoidRatio());
+        Debug.Log(_startingCount);
+
         OrganiseStones();
         StoreLengths();
 
@@ -51,7 +54,7 @@ public class MLEnvironment : MonoBehaviour
         }
         if (_voidRatio != null)
         {
-            _voidRatio.text = $"Current Void Ratio: {GetOccupiedRatio().ToString("F2")}";
+            _voidRatio.text = $"Current Void Ratio: {GetVoidRatio().ToString("F2")}";
         }
 
     }
@@ -71,7 +74,8 @@ public class MLEnvironment : MonoBehaviour
 
     public void Restart()
     {
-        CreateGridFromFile("Data/activate_voxels_vector");
+        //CreateGridFromFile("Data/activate_voxels_vector");
+        VoxelGrid.Restart();
         foreach (var stone in Stones)
         {
             var pos = PlatePositions[stone];
@@ -194,9 +198,9 @@ public class MLEnvironment : MonoBehaviour
         }
     }
 
-    public float GetOccupiedRatio()//occcupied voxel ratio
+    public float GetVoidRatio()//occcupied voxel ratio
     {
-        float current = VoxelGrid.GetVoxels().Count(v => v.Status == VoxelState.Occupied) * 1f;
+        float current = VoxelGrid.GetVoxels().Count(v => v.Status == VoxelState.Available) * 1f;
         return current / _startingCount;
     }
 
