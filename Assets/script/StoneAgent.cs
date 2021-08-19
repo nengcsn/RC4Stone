@@ -239,7 +239,7 @@ public class StoneAgent : Agent
             if (RotateStone(rotationAction))
             {
                 // 50 If action was valid, add reward
-                AddReward(0.0001f);
+                AddReward(0.0005f);
             }
             else
             {
@@ -359,8 +359,11 @@ public class StoneAgent : Agent
         //  Ratio of voids [1 Observation]
         sensor.AddObservation(_environment.GetOccupiedRatio());
         // How many stones have been placed
+        sensor.AddObservation((IList<float>)_environment.GetPlacedStones());
         // How many stones are left to be placed
+        sensor.AddObservation((IList<float>)_environment.GetUnplacedStones());
         // How many voxels are occupied / percentage
+        sensor.AddObservation(_environment.VoxelGrid);
         // And whatever else you can think to check
     }
 
