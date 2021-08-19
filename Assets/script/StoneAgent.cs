@@ -101,7 +101,7 @@ public class StoneAgent : Agent
         if (_placedStone)
         {
             _currentStone.OccupyVoxels();
-            Debug.Log(_environment.GetOccupiedRatio());
+            //Debug.Log(_environment.GetOccupiedRatio());
             _placedStone = false;
         }
 
@@ -118,33 +118,33 @@ public class StoneAgent : Agent
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            RotateStone(2);
+            RotateStone(2, out float validity);
 
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            RotateStone(3);
+            RotateStone(3, out float validity);
         }
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            RotateStone(4);
+            RotateStone(4, out float validity);
         }
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            RotateStone(5);
+            RotateStone(5, out float validity);
         }
         if (Input.GetKeyDown(KeyCode.Alpha5))
         {
-            RotateStone(6);
+            RotateStone(6, out float validity);
         }
         if (Input.GetKeyDown(KeyCode.Alpha6))
         {
-            RotateStone(7);
+            RotateStone(7, out float validity);
         }
         if (Input.GetKeyDown(KeyCode.Alpha7))
         {
-            RotateStone(8);
+            RotateStone(8, out float validity);
         }
         //if (Input.GetKeyDown(KeyCode.P))
         //{
@@ -171,6 +171,8 @@ public class StoneAgent : Agent
 
     public override void OnEpisodeBegin()
     {
+        // Restart environment
+        _environment.Restart();
         // 29 Read the target initial void ratio
         _voidRatioThreshold = Academy.Instance.EnvironmentParameters.GetWithDefault("void_ratio", 0.055f);
 
@@ -236,10 +238,10 @@ public class StoneAgent : Agent
 
             int rotationAction = actions.DiscreteActions[1];
 
-            if (RotateStone(rotationAction))
+            if (RotateStone(rotationAction, out float validity))
             {
                 // 50 If action was valid, add reward
-                AddReward(0.0005f);
+                AddReward(RewardByValidity(validity));
             }
             else
             {
@@ -252,8 +254,16 @@ public class StoneAgent : Agent
             {
                 if (PlaceLongestStone())
                 {
-                    // 50 If action was valid, add reward
-                    AddReward(0.0001f);
+                    if (RotateStone(rotationAction, out float val))
+                    {
+                        // 50 If action was valid, add reward
+                        AddReward(RewardByValidity(val));
+                    }
+                    else
+                    {
+                        // 51 Otherwise, apply penalty
+                        AddReward(-0.0001f);
+                    }
                 }
                 else
                 {
@@ -355,13 +365,12 @@ public class StoneAgent : Agent
             sensor.AddObservation(0);
         }
         else sensor.AddObservation(1);
-
         //  Ratio of voids [1 Observation]
         sensor.AddObservation(_environment.GetOccupiedRatio());
         // How many stones have been placed
-        sensor.AddObservation((IList<float>)_environment.GetPlacedStones());
+        sensor.AddObservation(_environment.GetPlacedStones().Count());
         // How many stones are left to be placed
-        sensor.AddObservation((IList<float>)_environment.GetUnplacedStones());
+        sensor.AddObservation(_environment.GetUnplacedStones().Count());
         // How many voxels are occupied / percentage
         sensor.AddObservation(_environment.VoxelGrid);
         // And whatever else you can think to check
@@ -403,40 +412,40 @@ public class StoneAgent : Agent
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            RotateStone(2);
+            RotateStone(2, out float validity);
             discreteActions[0] = 3;
 
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            RotateStone(3);
+            RotateStone(3, out float validity);
             discreteActions[0] = 4;
         }
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
-            RotateStone(4);
+            RotateStone(4, out float validity);
             discreteActions[0] = 5;
 
         }
         if (Input.GetKeyDown(KeyCode.Alpha4))
         {
-            RotateStone(5);
+            RotateStone(5, out float validity);
             discreteActions[0] = 6;
         }
         if (Input.GetKeyDown(KeyCode.Alpha5))
         {
-            RotateStone(6);
+            RotateStone(6, out float validity);
             discreteActions[0] = 7;
         }
         if (Input.GetKeyDown(KeyCode.Alpha6))
         {
-            RotateStone(7);
+            RotateStone(7, out float validity);
             discreteActions[0] = 8;
         }
         if (Input.GetKeyDown(KeyCode.Alpha7))
         {
-            RotateStone(8);
+            RotateStone(8, out float validity);
             discreteActions[0] = 9;
         }
         //if (Input.GetKeyDown(KeyCode.P))
@@ -541,14 +550,50 @@ public class StoneAgent : Agent
         _placedStone = true;
     }
 
-    private bool RotateStone(int index)
+    private bool RotateStone(int index, out float validity)
     {
         _currentStone.ClearOccupied();
         _placedStone = true;
+        validity = 1f;
+
 
         if (index < _directions.Length)
         {
-            _currentStone.OrientNormal(_directions[index]);
+            var direction = _directions[index];
+            _currentStone.OrientNormal(direction);
+
+            // From the voxel, get the voxels the stone would intersect with
+            // Based on its orientation and length
+
+            float size = _voxelGrid.VoxelSize;
+            int directionVoxelCount = Mathf.CeilToInt(_currentStone.Length / size);
+            int validVoxels = 0;
+            List<Vector3Int> vectors = new List<Vector3Int>();
+
+            for (int i = 1; i < directionVoxelCount; i++)
+            {
+                Vector3 nextIndex = _voxelLocation.Index + (direction * i);
+                Vector3Int floorVec = new Vector3Int(Mathf.FloorToInt(nextIndex.x), Mathf.FloorToInt(nextIndex.y), Mathf.FloorToInt(nextIndex.z));
+                Vector3Int ceilVec = new Vector3Int(Mathf.CeilToInt(nextIndex.x), Mathf.CeilToInt(nextIndex.y), Mathf.CeilToInt(nextIndex.z));
+
+                vectors.Add(floorVec);
+                if (floorVec != ceilVec) vectors.Add(ceilVec);
+            }
+
+            if (vectors.Count == 0) return false;
+
+            foreach (var vector in vectors)
+            {
+                if (Util.CheckBounds(_voxelGrid, vector))
+                {
+                    Voxel voxel = _voxelGrid.GetVoxel(vector);
+                    if (voxel.Status == VoxelState.Available) validVoxels++;
+                } 
+            }
+
+
+            validity = validVoxels / vectors.Count;
+
             return true;
         }
         else if (index == 30) return true;
@@ -579,7 +624,14 @@ public class StoneAgent : Agent
         return true;
     }
 
+    private float RewardByValidity(float validity)
+    {
+        if (validity < 0.25f) return -0.0001f;
+        else if (validity < 0.5f) return 0.0002f;
+        else if (validity < 0.75f) return 0.0004f;
+        else return 0.0005f;
 
+    }
 
 
 

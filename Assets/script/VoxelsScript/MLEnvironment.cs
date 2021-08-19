@@ -69,16 +69,16 @@ public class MLEnvironment : MonoBehaviour
         return Stones.Where(s => s.State != StoneState.NotPlaced);
     }
 
-    //// 37.1 Create method to the component at a given voxel
-    ///// <summary>
-    ///// Get the component located at a <see cref="Voxel"/>
-    ///// </summary>
-    ///// <param name="voxel"></param>
-    ///// <returns>The <see cref="Component"/> at the voxel</returns>
-    //public Component GetComponentAtVoxel(Voxel voxel)
-    //{
-    //    return _components[voxel.Index.x, voxel.Index.y, voxel.Index.z];
-    //}
+    public void Restart()
+    {
+        CreateGridFromFile("Data/activate_voxels_vector");
+        foreach (var stone in Stones)
+        {
+            var pos = PlatePositions[stone];
+            stone.MoveStartToPosition(pos);
+            stone.OrientNormal(Vector3.forward);
+        }
+    }
 
     #endregion
 
